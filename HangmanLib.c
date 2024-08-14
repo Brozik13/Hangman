@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <time.h>
 #define MAX_LENGTH 40
 
 /**
@@ -91,15 +92,10 @@ bool WordAlreadyInFile(const char *filename, const char *word) {
     char line[MAX_LENGTH];
     bool found = false;
 
-    file = fopen(filename, "r");
-    if (file == NULL) {
-        perror("Error opening file");
-        return false;
-    }
+    FileOpenError(&file, "WordstoGuess.txt", "r");
 
     while (fgets(line, sizeof(line), file) != NULL) {
         line[strcspn(line, "\n")] = 0;
-
         // Check if the line matches the word
         if (strcmp(line, word) == 0) {
             found = true;
@@ -152,7 +148,7 @@ bool IsValidWord(const char *word) {
  */
 void WordInsertion (FILE *file, char *line){
     printf("Please enter the word you want to add: ");
-    while (fgets(line, sizeof(line), stdin) != 0)
+    while (fgets(line, MAX_LENGTH, stdin) != 0)
     { 
         line[strcspn(line, "\n")] = 0;
         if (strcmp(line, "0") == 0)
@@ -162,7 +158,6 @@ void WordInsertion (FILE *file, char *line){
         if(!IsValidWord(line)){
             return;
         }
-        file = fopen("WordstoGuess.txt", "a");  
         FileOpenError(&file, "WordstoGuess.txt", "a");
         if (!WordAlreadyInFile("WordstoGuess.txt", line))
         {
@@ -178,10 +173,61 @@ void WordInsertion (FILE *file, char *line){
     }
 }
 
+/**
+ * @brief Counts the total number of lines in the given file.
+ * 
+ * This function reads through the file line by line, incrementing a counter for each line encountered.
+ * The file is expected to be open before passing it to this function. The function returns the total 
+ * number of lines found in the file.
+ * 
+ * @param file Pointer to the open file where the lines are to be counted. 
+ * 
+ * @return The total number of lines in the file.
+ */
+int CountWordsInFile(FILE *file){
+    int NumOfLines = 0; char line[MAX_LENGTH];
+    while (fgets(line, sizeof(line), file) != NULL) {
+        NumOfLines++;
+    }
+    return NumOfLines;
+}
 
+/**
+ * @brief Selects a random word from the given file based on the number of lines.
+ * 
+ * This function selects a random line from the file, which is assumed to contain words,
+ * one per line. The file is first opened in read mode, and the function reads up to the 
+ * randomly selected line. The selected word is then printed to the console.
+ * 
+ * @param file Pointer to the file containing the words. The file is opened within the function.
+ * @param NumOfLines The total number of lines (words) in the file, used to determine the range for random selection.
+ */
+void SelectWord(FILE *file, int NumOfLines){
+    srand(time(NULL));
+    int randomLine = rand() % NumOfLines;   // Random num from array
 
-void WordGuessing(){
-    printf("guessing");
+    FileOpenError(&file, "WordstoGuess.txt", "r");
+
+    char selectedword[MAX_LENGTH];
+    for (int i = 0; i <= randomLine; i++) {
+        if (fgets(selectedword, MAX_LENGTH, file) == NULL) {
+            fclose(file);
+        }
+    }
+    // Remove the newline character at the end of the selected word, if it exists
+    selectedword[strcspn(selectedword, "\n")] = 0;
+                                                    printf("%s\n", selectedword);
+}
+
+void WordGuessing(FILE *file){
+    int NumOfLines = CountWordsInFile(file);
+    CloseFile(&file);
+    if(NumOfLines <= 0){
+        printf("No words to guess.\n");
+        exit(0);
+    }
+    SelectWord(file, NumOfLines);
+    
 }
 
 /**
@@ -201,10 +247,9 @@ void WordGuessing(){
 bool GameContinues(FILE **file, char *line){
 
     if (strcmp(line, "play\n") == 0) {
-        *file = fopen("WordstoGuess.txt", "r");
         FileOpenError(file, "WordstoGuess.txt", "r");
         
-        WordGuessing();
+        WordGuessing(*file);
         CloseFile(file);
     } 
     else if (strcmp(line, "add\n") == 0) {

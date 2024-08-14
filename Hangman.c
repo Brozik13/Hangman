@@ -3,8 +3,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include "HangmanLib.c"
-
-
 #define MAX_LENGTH 40
 
 int main() {
