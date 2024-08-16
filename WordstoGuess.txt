@@ -1,10 +1,5 @@
-train
-jam
-mold
-add
-tree
-play
-place
-nothing
-playground
-snail
+remedy
+judgement
+complaint
+rule
+lawsuit
