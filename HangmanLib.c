@@ -408,7 +408,7 @@ void WordGuessing(FILE *file){
             state++;
         }
         if(!strcmp(WordToGuess, board)){
-            printf("You WON!\n");
+            printf("You WON!\n Thw word was %s\n", WordToGuess);
         }
     }
 }
